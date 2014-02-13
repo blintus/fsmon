@@ -1,0 +1,2 @@
+test CREATE|DELETE echo hi >> log
+test/testFile MODIFY echo modify >> log
