@@ -7,7 +7,7 @@ static struct option long_options[] = {
 	{"help",    no_argument,       0, 'h'}
 };
 
-static char *PID_FILE = "/var/run/fsmon.pid";
+static char *PID_FILE = "/tmp/fsmon.pid";
 static int PID_FILE_STATIC = 1;
 
 #endif

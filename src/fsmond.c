@@ -92,6 +92,7 @@ int main(int argc, char *argv[]) {
 			break;
 
 		case '?':
+			exit(1);
 			/* getopt_long already printed an error message. */
 			break;
 
@@ -104,7 +105,14 @@ int main(int argc, char *argv[]) {
 	// 	fork here
 	// }
 
-	// pid_t myPid = getpid();
+	FILE *f = fopen(PID_FILE, "w");
+	if (f) {
+		pid_t myPid = getpid();
+		fprintf(f, "%d\n", myPid);
+		fclose(f);
+	} else {
+		fprintf(stderr, "Error creating pid file.\n");
+	}
 
 	char *line = NULL;
 	size_t lineSize;
@@ -136,6 +144,8 @@ int main(int argc, char *argv[]) {
 
 	free(maskStr);
 	free(line);
+
+	unlink(PID_FILE);
 
 	if (!PID_FILE_STATIC) free(PID_FILE);
 
