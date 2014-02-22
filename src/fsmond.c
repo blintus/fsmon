@@ -7,8 +7,10 @@
 #include <sys/inotify.h>
 #include <unistd.h>
 #include <string.h>
+#include <pthread.h>
 
 #include "fsmond.h"
+#include "thread.h"
 
 // IN_ACCESS         File was accessed (read) (*).
 // IN_ATTRIB         Metadata  changed, e.g., permissions, timestamps, extended attributes, link count (since Linux 2.6.25), UID, GID, etc. (*).
@@ -140,6 +142,11 @@ int main(int argc, char *argv[]) {
 
 		uint32_t mask = getMask(maskStr);
 		printf("%d\n", mask);
+
+		numThreads++;
+		threads = realloc(threads, sizeof(pthread_t) * numThreads);
+		pthread_create(&threads[numThreads-1], NULL, thread_main, NULL);
+
 	}
 
 	free(maskStr);
