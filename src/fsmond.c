@@ -12,6 +12,18 @@
 #include "fsmond.h"
 #include "thread.h"
 
+#define OPT_ARGS "dkp:h"
+static struct option long_options[] = {
+	{"pidfile", required_argument, 0, 'p'},
+	{"help",    no_argument,       0, 'h'}
+};
+
+static char *PID_FILE = "/tmp/fsmon.pid";
+static int PID_FILE_STATIC = 1;
+
+pthread_t *threads = NULL;
+int numThreads = 0;
+
 // IN_ACCESS         File was accessed (read) (*).
 // IN_ATTRIB         Metadata  changed, e.g., permissions, timestamps, extended attributes, link count (since Linux 2.6.25), UID, GID, etc. (*).
 // IN_CLOSE_WRITE    File opened for writing was closed (*).
@@ -121,7 +133,8 @@ int main(int argc, char *argv[]) {
 	ssize_t length;
 	FILE *tab = fopen("test.fsmontab", "r");
 
-	char *maskStrTmp = NULL;
+	ThreadArg *targ = NULL;
+	char *tmp = NULL;
 	char *maskStr = NULL;
 
 	while ((length = getline(&line, &lineSize, tab)) != -1) {
@@ -132,25 +145,39 @@ int main(int argc, char *argv[]) {
 		if (line[0] == '#') continue;
 		else if (strcmp(line, "") == 0) continue;
 
-		printf("File: %s\n", strtok(line, " "));
+		targ = malloc(sizeof(targ));
 
-		maskStrTmp = strtok(NULL, " ");
-		maskStr = realloc(maskStr, sizeof(char) * (strlen(maskStrTmp) + 1));
-		strcpy(maskStr, maskStrTmp);
+		// File
+		tmp = strtok(line, " ");
+		targ->filepath = malloc((strlen(tmp) + 1) * sizeof(char));
+		strcpy(targ->filepath, tmp);
 
-		printf("Command: %s\n", strtok(NULL, ""));
+		tmp = strtok(NULL, " ");
+		maskStr = realloc(maskStr, sizeof(char) * (strlen(tmp) + 1));
+		strcpy(maskStr, tmp);
 
-		uint32_t mask = getMask(maskStr);
-		printf("%d\n", mask);
+		tmp = strtok(NULL, "");
+		targ->command = malloc((strlen(tmp) + 1) * sizeof(char));
+		strcpy(targ->command, tmp);
+
+		targ->mask = getMask(maskStr);
 
 		numThreads++;
 		threads = realloc(threads, sizeof(pthread_t) * numThreads);
-		pthread_create(&threads[numThreads-1], NULL, thread_main, NULL);
+		pthread_create(&threads[numThreads-1], NULL, thread_main, (void*)targ);
 
 	}
 
+	fclose(tab);
+
 	free(maskStr);
 	free(line);
+
+	for (int i = 0; i < numThreads; i++) {
+		pthread_join(threads[i], NULL);
+	}
+
+	free(threads);
 
 	unlink(PID_FILE);
 

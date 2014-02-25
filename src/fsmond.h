@@ -1,18 +1,12 @@
 #ifndef FSMOND_H
 #define FSMOND_H
 
-#include <pthread.h>
+#include <sys/inotify.h>
 
-#define OPT_ARGS "dkp:h"
-static struct option long_options[] = {
-	{"pidfile", required_argument, 0, 'p'},
-	{"help",    no_argument,       0, 'h'}
-};
-
-static char *PID_FILE = "/tmp/fsmon.pid";
-static int PID_FILE_STATIC = 1;
-
-pthread_t *threads = NULL;
-int numThreads = 0;
+typedef struct {
+	char *filepath;
+	char *command;
+	uint32_t mask;
+} ThreadArg;
 
 #endif
