@@ -12,5 +12,5 @@
 # OPEN           File was opened (*).
 # ALL_EVENTS     All events.
 
-test CREATE|DELETE echo hi >> log
-test/testFile MODIFY echo modify >> log
+test/testFile CLOSE_WRITE echo modify >> log
+test CREATE|DELETE|MODIFY echo hi >> log
